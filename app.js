@@ -22,14 +22,13 @@ async function request(url, options) {
 
 request("structure.json")
   .then(value => {
-    // Стили можно добавить следующим образом, (из задания):
     const style = document.createElement("style");
     style.textContent = value.style;
     document.body.appendChild(style);
 
     document.body.innerHTML = value.html;
   })
-  .catch(err => console.log(err));
+  .catch(err => console.error(err));
 
 // ЗАДАНИЕ №2
 // С помощью async функции и fetch() выполнить get запрос к ресурсу.
@@ -72,4 +71,53 @@ request("https://jsonplaceholder.typicode.com/todos")
 
     document.body.appendChild(renderUserUL(usersTaskInfo));
   })
-  .catch(err => console.log(err));
+  .catch(err => console.error(err));
+
+// ЗАДАНИЕ №3
+// Используя сервис jsonplaceholder, создать функцию, которая сделает POST
+// запросы для добавления любого количества юзеров (примеры там же).
+// Каждый успешный запрос будет возвращать ответ в виде созданного юзера
+// (объект с дополнительными полем id).
+// После последнего запроса (т.е. когда выполнены все запросы) показать
+// информацию о всех юзерах (их имена и количество) на странице (использовать
+// codepen или любой другой онлайн-редактор).
+
+// При использовании codepen или другого ресурса с httpS, запрос следует слать
+// на тот же протокол httpS https://jsonplaceholder.typicode.com/users
+
+// Пример третьей задачи:
+// createUsers([{name: 'Vasya', age: 25}, {name: 'Petya', age: 40}]);
+// → created 2 users: Vasya, Petya
+
+const usersArr = [{ name: "Vasya", age: 25 }, { name: "Petya", age: 40 }];
+
+function createUsers(usersArr) {
+  async function arrRequest(usersArr) {
+    const usersRequestsFunc = usersArr.reduce((acc, el) => {
+      acc.push(
+        new Promise((resolve, reject) => {
+          return request("https://jsonplaceholder.typicode.com/users", {
+            method: "POST",
+            body: JSON.stringify(el),
+            headers: { "Content-Type": "application/json" }
+          })
+            .then(data => resolve(data))
+            .catch(err => reject(err));
+        })
+      );
+      return acc;
+    }, []);
+    const response = await Promise.all([...usersRequestsFunc]);
+    return response;
+  }
+
+  return arrRequest(usersArr).then(usersArr =>
+    console.log(
+      `created ${usersArr.length} users: ${usersArr
+        .map(el => el.name)
+        .join(", ")}`
+    )
+  );
+}
+
+createUsers(usersArr);
