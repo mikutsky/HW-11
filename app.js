@@ -23,10 +23,12 @@ async function request(url, options) {
 request("structure.json")
   .then(value => {
     const style = document.createElement("style");
-    style.textContent = value.style;
-    document.body.appendChild(style);
-
-    document.body.innerHTML = value.html;
+    style.textContent = value.styles;
+    document.head.appendChild(style);
+    document.body.insertAdjacentElement(
+      "afterbegin",
+      ...new DOMParser().parseFromString(value.html, "text/html").body.children
+    );
   })
   .catch(err => console.error(err));
 
@@ -44,7 +46,8 @@ request("structure.json")
 // https://jsonplaceholder.typicode.com/todos
 
 function renderUserUL(objectOfUsers) {
-  const ul_Users = document.createDocumentFragment("ul");
+  const ul_Users = document.createElement("ul");
+  ul_Users.style.color = "cornflowerblue";
 
   for (const userId in objectOfUsers) {
     const liUser = document.createElement("li");
